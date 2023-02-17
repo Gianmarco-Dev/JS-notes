@@ -32,7 +32,14 @@ function canBreathe(isConnected, hasOxygen, aboveWater) {
     return aboveWater || (isConnected && hasOxygen);
 }
 
-export default canBreathe;
 
-// test1
+// the `&&` operator can be referred to as the **Logical AND** operator or the **guard** operator.
 
+// We can use the operator to guard against run-time exceptions (or errors) when dealing with falsey values.
+// The problem is, sometimes a variable can be undefined. 
+// When this is the case, let's return undefined without throwing an exception using the guard operator.
+
+
+function friendName(friend) {
+    return friend && friend.name ;
+}
