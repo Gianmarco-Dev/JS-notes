@@ -273,3 +273,148 @@ Questa implementazione utilizza l'operatore di doppia negazione (`!!`) per forza
 
 Pertanto, la funzione `isTruthy()` restituisce `true` se il valore di input `a` è vero e `false` se è falso.
 
+
+
+
+## Operatore di uguaglianza e di identità
+------------
+
+Nelle lezioni precedenti abbiamo discusso l'operatore di uguaglianza rigorosa `===`. Sappiamo che questo operatore confronta due valori e restituisce se sono uguali o meno.
+
+Per esempio:
+
+```
+console.log(3 === 3); // vero
+console.log("mela" === "arancia"); // falso
+
+```
+
+Quando i valori sono di tipo diverso, l'operatore `===` valuterà sempre false:
+
+```
+console.log("2" === 2); // falso
+
+```
+
+Tuttavia, l'operatore di confronto loose equals, o vaga uguaglianza, `==` tenterà la conversione di tipo per confrontare i valori!
+
+```
+console.log("2" == 2); // true
+
+```
+
+> Molti scoraggiano l'uso di `==` in generale. Innanzitutto è **meno performante** perché richiede di cambiare il tipo di valore. Inoltre, può portare a risultati confusi in alcuni casi in cui la conversione di tipo è inaspettata.
+
+---
+
+## Da oggetto a JSON
+
+JavaScript Object Notation, o **JSON**, è un formato per il trasferimento di dati JavaScript.
+
+Non preoccupatevi! È molto simile alla sintassi degli oggetti a cui siamo già abituati, ma in forma di stringa.
+
+Vediamo un po' di JSON:
+
+```
+const persona = '{"nome": "Jim"}';
+
+```
+
+Il valore memorizzato in `persona` è una stringa! Assomiglia un po' a un oggetto e, in effetti, può essere facilmente trasformato.
+
+Il vantaggio di JSON è che possiamo usarlo per inviare dati attraverso una **rete**. 
+
+Possiamo ottenere lo stesso JSON usando `JSON.stringify` su un oggetto esistente:
+
+```
+const persona = JSON.stringify({nome: "Jim" });
+
+console.log(person); // {"name": "Jim"}
+
+```
+ Il risultato è lo stesso del JSON creato nel primo esempio.
+
+
+ Il vostro obiettivo: JSON
+-------------------
+
+Dato un oggetto, trasformarlo in JSON e restituire la stringa risultante.
+
+```
+function toJSON(obj) {
+    return JSON.stringify(obj);
+}
+
+```
+
+---
+
+JSON valido
+----------
+
+Nell'ultima fase ci siamo concentrati sulla trasformazione di un oggetto in JSON. Possiamo anche fare l'**inverso**, trasformando un JSON in un oggetto.
+
+Supponiamo che un'altra macchina ci abbia inviato JSON attraverso una rete:
+
+```
+const itemJSON = `{
+    "tipo": "cibo",
+    "commestibile": true,
+    "quantità": 2
+}`
+
+```
+
+> Si noterà che le chiavi `type`, `edible` e `quantity` sono tutte tra doppi apici. Questo è richiesto in JSON. Senza di essa, questo non sarebbe un JSON valido.
+
+ Possiamo analizzare il JSON di cui sopra per trasformarlo in un oggetto:
+
+```
+const item = JSON.parse(itemJSON);
+
+console.log(item.type); // cibo
+console.log(item.edible); // true
+
+```
+
+Ora possiamo usare l'operatore `.` come con qualsiasi altro oggetto JavaScript!
+
+
+ Obiettivo: creare JSON valido
+-----------------------------
+
+
+### Codice Esempio 
+
+Creiamo un JSON che possa essere analizzato in un oggetto persona con 3 proprietà:
+
+- **nome**: con un valore `stringa` qualsiasi
+- **age**: con un qualsiasi valore `number
+- **isReal**: con un qualsiasi valore `booleano`.
+
+
+```
+const personJSON = `
+    { 
+        "name": "Satoshi Nakamoto",
+        "age": 0,
+        "isReal": false
+    } 
+`;
+
+```
+
+--- 
+Un esempio di parsing del `personJSON` dovrebbe funzionare così:
+
+```
+const persona = JSON.parse(personJSON);
+
+console.log(person.name); // "Harry Potter"
+console.log(person.age); // 18 anni
+console.log(person.isReal); // false
+
+```
+
+
+> JSON può essere piuttosto rigido nella sintassi! Se si ottiene `SyntaxError: Unexpected token`, meglio consultare le regole JSON su [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON)
