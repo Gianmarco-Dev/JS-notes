@@ -137,3 +137,82 @@ In binario, esistono anche nomi per le grandi grandezze:
 
 > In molti casi si useranno i prefissi **kibi**, **mebi** e **gibi** piuttosto che **kilo**, **mega** e **giga** rispettivamente. Questi ultimi prefissi sono usati tradizionalmente nel [Sistema internazionale di unità di misura] (https://en.wikipedia.org/wiki/International_System_of_Units) per rappresentare le grandezze in potenze di dieci (`10**3`, `10**6` e `10**9`). Tradizionalmente, un **kilobyte** si riferiva a `1024` byte, ma questo termine è ora potenzialmente ambiguo. Potrebbe essere opportuno usare il termine **kibibyte** quando ci si riferisce a `1024` byte per evitare confusioni.
 
+
+
+---
+
+
+## ESADECIMALE
+
+
+Esadecimale
+-----------
+
+L'esadecimale è tradizionalmente utilizzato per rappresentare i dati grezzi. Ciò è dovuto probabilmente alla facilità di conversione da e verso il binario.
+
+16 Simboli 
+-----------
+
+Il nome esadecimale deriva dal fatto che utilizza **16 simboli**: da `0` a `9` e da `a` a `f`.
+
+I valori decimali da `a` a `f` sono da `10` a `15`. L'esadecimale si immerge nei caratteri alfabetici per avere 16 simboli.
+
+> I caratteri in esadecimale sono insensibili alle maiuscole e alle minuscole, cioè possono essere sia maiuscoli (`A`) che minuscoli (`a`). In questo articolo scopriremo come l'esadecimale a casualità mista possa essere usato come [checksum] (https://en.wikipedia.org/wiki/Checksum)!
+
+### Prefisso 0x 
+----------
+
+In genere, una stringa di caratteri esadecimali viene indicata con il prefisso `0x`. Ad esempio, una stringa casuale di caratteri esadecimali potrebbe avere il seguente aspetto:
+
+```
+0x4fd979de3edf0f56aa9716b898ec8
+
+```
+
+ Lo `0x` davanti indica semplicemente che il resto della stringa è esadecimale. Il valore effettivo è tutto ciò che viene dopo questo prefisso.
+
+### Conversione manuale in binario 
+------------------------------
+
+In realtà è abbastanza facile convertire l'esadecimale in binario!
+
+Poiché ogni carattere in esadecimale può rappresentare 16 valori, esso corrisponde essenzialmente a un **nibble** o **quattro bit**:
+
+| ESADECIMALE | BINARIO |
+| --- | --- |
+| 0 | 0000 |
+| 1 | 0001 |
+| 2 | 0010 |
+| ... | ... |
+| e | 1110 |
+| f | 1111 |
+
+ Una volta che si conoscono i valori e la loro corrispondenza, è abbastanza facile convertire tra esadecimale e binario!
+
+Ad esempio, la stringa binaria, `11110100110110010111`, può essere scritta come segue:
+
+```
+1111 0100 1101 1001 0111
+F 4 D 9 7
+
+```
+
+ Abbiamo separato i bit in nibble in modo da poterli mappare facilmente in valori esadecimali! Una volta ottenuta una tabella di mappatura dei valori binari, è abbastanza semplice andare avanti e indietro. Se l'avete memorizzata, potete fare questo genere di cose banalmente. 
+
+Possiamo fare la stessa cosa al contrario per la stringa esadecimale, `0x1c3af`:
+
+```
+1 C 3 A F
+0001 1100 0011 1100 1111
+
+```
+
+È molto più facile digitare `0x1c3af` che `00011100001111001111`, quindi si capisce perché l'esadecimale può essere preferibile al formato binario!
+
+Wrap up
+--------
+
+L'esadecimale è tradizionalmente usato per rappresentare dati grezzi e lo vedremo spesso quando ci immergeremo nei sistemi di crittografia.
+
+È abbastanza facile da convertire manualmente in binario, il che lo rende un ottimo strumento per la visualizzazione di grandi valori di dati.
+
