@@ -789,21 +789,21 @@ classe Team {
     }
 }
 
-const team1 = new Team("Giants");
-const team2 = new Team("Jets");
+const team1 = new Team("Milan");
+const team2 = new Team("Inter");
 
 Sia `team1` che `team2` sono istanze di `Team`. Entrambe utilizzano la stessa funzione costruttore.
 
 La differenza è che quando `team1` chiama il `constructor`, la parola chiave `this` è l'oggetto `team1`. Per `team2`, `this` sarebbe l'oggetto `team2`.
 
-Il risultato del codice qui sopra è che `nome` è memorizzato nell'oggetto appropriato:
+Il risultato del codice qui sopra è che `name` è memorizzato nell'oggetto appropriato:
 
 ```
-const team1 = new Team("Giants");
-const team2 = new Team("Jets");
+const team1 = new Team("Milan");
+const team2 = new Team("Inter");
 
-console.log(team1.name); // "Giants"
-console.log(team2.name); // "Jets"
+console.log(team1.name); // "Milan"
+console.log(team2.name); // "Inter"
 
 ```
 
@@ -812,7 +812,7 @@ Una nota importante in JavaScript è che queste istanze fanno tutte riferimento 
 
 ```
 classe Hello {
-    costruttore() {
+    constructor() {
         console.log('hello!');
     }
 }
@@ -822,13 +822,13 @@ const h2 = new Hello(); // hello!
 
 ```
 
-Sia `h1` che `h2` sono **istanze** di `Hello`. Quando viene creata un'istanza, viene richiamata la funzione `costruttore`.
+Sia `h1` che `h2` sono **istanze** di `Hello`. Quando viene creata un'istanza, viene richiamata la funzione `constructor`.
 
 Un costruttore è un ottimo posto per inizializzare le proprietà di un'istanza di classe. Lo si può fare utilizzando la parola chiave `this`, che è l'**istanza**:
 
 ```
 classe Team {
-    costruttore() {
+    constructor() {
         this.sport = "football";
     }
 }
@@ -838,17 +838,16 @@ console.log(t1.sport); // football
 
 ```
 
-
 ---
 
 
+La proprietà `sport` è memorizzata nell'istanza di `Team`, inizializzata a `football`.
 
-La proprietà `sport` è memorizzata nell'istanza di `Team`, inizializzata a "soccer".
 
- Il vostro obiettivo: la salute dell'eroe
+Esercizio: la salute dell'eroe
 -----------------------
 
-Nella funzione del costruttore, aggiungere una proprietà `health` a un'istanza dell'eroe e impostarla a `50`.
+Nella funzione costruttore, aggiungere una proprietà `health` a un'istanza dell'eroe e impostarla a `50`.
 
 Quando si crea un nuovo eroe, dovrebbe funzionare così:
 
@@ -856,5 +855,348 @@ Quando si crea un nuovo eroe, dovrebbe funzionare così:
 const hero = new Hero();
 
 console.log(hero.health); // 50
+
+```
+
+--- 
+
+# Metodo e classe
+
+Oltre ai **costruttori**, possiamo definire i nostri metodi sulle classi:
+
+```
+classe Team {
+    constructor() {
+        this.wins = 0;
+        this.losses = 0;
+    }
+    changeRecord(isWin) {
+        if(isWin) {
+            this.wins++;
+        }
+        else {
+            this.losses++;
+        }
+    }
+}
+
+```
+
+Qui `changeRecord` ha un parametro booleano `isWin` che determina se aggiungere una vittoria o una sconfitta al record della squadra.
+
+
+### Esercizio : il metodo Take Damage
+------------------------------
+
+Aggiungere un metodo `takeDamage` alla classe `Hero`. Questo metodo dovrebbe accettare un parametro **numero** che rappresenta il danno. Questo numero dovrebbe essere sottratto direttamente dalla salute dell'eroe.
+
+Per esempio:
+
+```
+const hero = new Hero();
+
+console.log(hero.health); // 50
+
+hero.takeDamage(5);
+
+console.log(hero.health); // 45
+
+```
+
+
+CODICE: 
+
+```
+class Hero {
+    constructor() {
+        this.health = 50;
+    };
+
+    takeDamage(damage){
+        this.health -= damage;
+    }
+
+}
+
+module.exports = Hero;
+
+```
+
+
+## Sottoclassi
+----------
+
+È possibile creare sottoclassi che **estendono** o ereditano comportamenti dalla loro classe madre.
+
+> Sotto il cofano, **extend** utilizza la catena dei prototipi. Si faccia riferimento alla lezione sui prototipi per capire la differenza tra ereditarietà prototipale ed ereditarietà classica.
+
+Vediamo un esempio di estensione di una classe:
+
+```
+classe Shape {
+    constructor() {
+        this.position = { x: 0, y: 0 }
+    }
+}
+
+class Rectangle extends Shape {
+
+}
+
+```
+
+In `Rectangle`, possiamo aggiungere funzionalità che riguardano solo un rettangolo senza cambiare la nostra definizione di `Shape`.
+
+Nel frattempo, `Rectangle` eredita la proprietà position da `Shape`:
+
+```
+const rect = new Rectangle();
+
+console.log(rect.position.x); // 0
+console.log(rect.position.y); // 0
+
+```
+
+---
+
+
+## Nuova keyword JS: Super
+------------------
+
+Continuiamo con l'esempio della fase precedente. Abbiamo una classe `Shape` e una classe `Rectangle` che la estende.
+
+Se volessimo aggiungere nuove proprietà al nostro Rectangle, potremmo farlo nel costruttore:
+
+```
+classe Shape {
+    constructor() {
+        this.position = { x: 0, y: 0 }
+    }
+}
+
+classe Rectangle extends Shape {
+    constructor() {
+        super();
+        this.height = 10;
+        this.width = 5;
+    }
+}
+
+```
+
+Si noti l'uso della parola chiave **super**. Quando viene invocata, chiama il costruttore di `Shape`.
+
+> Le sottoclassi **devono** chiamare super prima di accedere a `this` all'interno del costruttore, altrimenti JavaScript    lancerà un errore di riferimento.
+
+
+Infatti, un errore comune quando si usa `super` è chiamarlo dopo aver avuto accesso a `this`:
+
+```
+classe Shape {
+    constructor() {
+        this.position = { x: 0, y: 0 }
+    }
+}
+
+classe Rettangolo extends Shape {
+    constructor() {
+        this.height = 10;
+        this.width = 5;
+        super(); // <-- questa istruzione dovrebbe essere spostata due righe più in alto!
+    }
+}
+
+```
+
+Questo codice non darà problemi finché non proveremo a creare un nuovo rettangolo:
+
+```
+const rect = new Rectangle();
+
+```
+
+Ecco che avremo un errore con un'eccezione: `Uncaught ReferenceError: Must call super constructor in derived class before accessing 'this' or returning from derived constructor`.
+
+
+---
+
+Torniamo all'esempio di prima.
+Ora `Rectangle` avrà le proprietà di entrambi i costruttori:
+
+```
+const rectangle = new Rectangle();
+
+console.log(rectangle.position.x); // 0
+console.log(rectangle.height); // 10
+console.log(rectangle.width); // 5
+
+```
+
+
+### Esercizio: aggiungere rabbia
+--------------------
+
+Aggiungere una proprietà `rage` al `warrior`. Il valore di `rage` partirà da `0`.
+
+
+CODICE: 
+
+```
+const Hero = require('./Hero');
+
+class Warrior extends Hero {
+    constructor() {
+        super();
+        this.rage = 0;
+    }
+
+
+}
+
+module.exports = Warrior;
+
+
+```
+
+
+---
+
+
+## Chiamare i supermetodi
+---------------------
+
+Nell'ultima fase, abbiamo usato `super` per invocare un costruttore da un costruttore di una classe **figlio**.
+
+> Spesso l'ereditarietà utilizza la metafora genitore/figlio. La classe che è stata estesa è chiamata **genitore**, mentre la classe che la estende è chiamata **figlio**.
+
+Possiamo anche usare `super` per chiamare i metodi corrispondenti di una classe **parent**:
+
+```
+class Potion {
+    constructor() {
+        this.empty = false;
+    }
+
+    drink() {
+        this.empty = true;
+    }
+}
+
+class NoisyPotion extends Potion {
+    drink() {
+        super.drink();
+        console.log("LOUD NOISES!");
+    }
+}
+
+
+```
+
+La `NoisyPotion` emette rumori forti quando è ubriaca tramite console.log - Kappa
+
+Chiamando `super.drink()` si imposterà anche su `empty`, che è il comportamento `drink` di `Potion`.
+
+ ### ESERCIZIO: estendere takeDamage
+-----------------------------
+
+Aggiungere un metodo `takeDamage` alla classe `Warrior` che incrementi la rabbia di 1 ogni volta che il guerriero subisce un danno.
+
+Dovrebbe anche invocare il metodo `takeDamage` su `Hero` che infliggerà il danno alla salute dell'eroe.
+
+```
+
+const Hero = require('./Hero');
+
+class Warrior extends Hero {
+    constructor() {
+        super();
+        this.rage = 0;
+    }
+
+    takeDamage(damage){
+        super.takeDamage(damage);
+        this.rage += 1;
+        
+    }
+
+
+}
+
+module.exports = Warrior;
+
+```
+
+> Assicuratevi sempre di passare l'argomento `damage` nella chiamata a `super.takeDamage`.
+
+
+### Ultimo esercizio: Salute configurabile
+
+-------------------
+
+Esercizio finale! Facciamo in modo che entrambe le classi `Hero` e `Warrior` abbiano la salute configurabile.
+
+Quando si crea un guerriero/eroe, si passerà un numero che dovrà essere memorizzato come salute:
+
+```
+const guerriero1 = nuovo guerriero(50);
+const warrior2 = new Warrior(25);
+const eroe1 = nuovo Eroe(10);
+
+console.log(guerriero1.salute); // 50
+console.log(guerriero2.salute); // 25
+console.log(hero1.health); // 10
+
+```
+
+Gli argomenti passati quando si chiama una classe con `new` saranno passati direttamente al costruttore.
+
+Cambiamo quindi il `constructor` di entrambe le classi `Hero` e `Warrior` per fare questo.
+
+
+CODICE file Warrior.js: 
+
+```
+const Hero = require('./Hero');
+
+class Warrior extends Hero {
+    constructor(health) {
+        super();
+        this.health = health;
+        this.rage = 0;
+    }
+
+    takeDamage(damage){
+        super.takeDamage(damage);
+        this.rage += 1;
+        
+    }
+
+
+
+
+}
+
+module.exports = Warrior;
+
+
+```
+
+
+CODICE file Hero.js: 
+
+
+```
+class Hero {
+    constructor(health) {
+        this.health = health;
+    };
+
+    takeDamage(damage){
+        this.health -= damage;
+    }
+
+}
+
+module.exports = Hero;
 
 ```
