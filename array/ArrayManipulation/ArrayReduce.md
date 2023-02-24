@@ -121,7 +121,7 @@ module.exports = largest;
 ## Ridurre un array al più grande intero positivo
 ----------------
 
-Noterete che il vostro codice non è cambiato rispetto all'ultima fase. Ci baseremo su ciò che avete appena imparato!
+Noterete che il vostro codice non è cambiato rispetto all'ultima fase. 
 
 In questa fase, prendiamo il numero **positivo** più grande. Se non troviamo nessun numero positivo, restituiamo semplicemente `1`. C'è un modo semplice per farlo in `reduce`, chiamato impostazione del **valore iniziale**. Vediamolo in un'illustrazione:
 
@@ -217,7 +217,7 @@ module.exports = removeDuplicates;
 ---
 
 
-## Raggruppamento con Reduce
+## Raggruppamento e riduzione di oggetti con Reduce
 --------------------
 
 
@@ -271,7 +271,7 @@ module.exports = group;
 
 ---
 
-## Usare .reduce per ottenere valori unici
+## Ridurre un array a valori unici
 ----------
 
 
