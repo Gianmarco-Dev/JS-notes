@@ -1,4 +1,4 @@
-## Che cos'è la ricorsione? 
+## Che cos'è la ricorsione 
 ----------------
 
 Molto semplicemente, **la ricorsione avviene quando una funzione chiama se stessa**.
@@ -43,7 +43,7 @@ La ricorsione è meglio utilizzata nei casi in cui un problema può essere suddi
 
 ---
 
-## Funzione ricorsiva
+## Funzioni ricorsive
 Una funzione ricorsiva è una funzione che richiama se stessa. Ad esempio:
 
 ```
