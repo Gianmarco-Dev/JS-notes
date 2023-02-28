@@ -212,3 +212,92 @@ function factorial(n) {
 module.exports = factorial;
 ```
 
+
+
+==========
+## Percorrere i nodi
+==========
+
+---
+
+Creiamo una funzione che trovi l'ultimo nodo di un elenco di nodi.
+
+Un `nodo` avrà due proprietà:
+
+1.  `id`: Un identificatore univoco.
+2.  `next`: Un riferimento a un altro nodo.
+
+In questo modo, ogni nodo punterà a quello **successivo**.
+
+```
+// Dato un nodo, possiamo trovare il nodo2 usando next
+const node2 = node.next;
+
+// nodo2 ha il suo id e il riferimento al nodo successivo
+console.log(node2); // {id: 2, next: {...}}
+
+// possiamo trovare il nodo3 utilizzando next sul nodo2
+const node3 = node2.next;
+
+// anche il nodo3 ha il suo id e il suo riferimento al nodo successivo
+console.log(node3); // {id: 3, next: {...}}
+
+```
+
+A un certo punto, ci sarà un nodo senza un **successivo**!
+
+```
+console.log( node5.next ); // undefined
+
+```
+
+ Facciamo di questo il nostro caso base.
+
+
+---
+ESERCIZIO
+
+### Parte 1:  caso base
+---------------------
+
+Ancora una volta, inizieremo con il **caso base**.
+
+Dato un nodo la cui proprietà `next` è `undefined`, restituire il nodo.
+
+
+```
+function walk(node) {
+  // caso base: se il nodo non ha un successivo, restituisce il nodo corrente
+  if (!node.next) {
+    return node;
+  }
+}
+
+module.exports = walk;
+
+```
+
+
+### Parte 2: trovare l'ultimo nodo
+-----------------------------
+
+OK, ora che abbiamo stabilito un **caso base**, aggiungiamo il passo ricorsivo.
+
+Continuiamo a percorrere i nodi fino a trovare l'ultimo. 
+
+```
+function walk(node) {
+  // caso base: se il nodo non ha un successivo, restituisce il nodo corrente
+  if (!node.next) {
+    return node;
+  }
+
+  // caso ricorsivo: percorre il nodo successivo e restituisce il risultato
+  return walk(node.next);
+}
+
+module.exports = walk;
+
+
+```
+
