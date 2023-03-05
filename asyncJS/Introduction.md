@@ -111,7 +111,7 @@ dialog.onClose(function() {
 
 ```
 
-> Ricordiamo che nell'ultima fase la callback è stato invocata in modo asincrono da `setTimeout`. Questo callback è simile. La differenza principale è che la funzione `close` viene richiamata dall'utente quando clicca per uscire dalla finestra di dialogo.
+> Ricordiamo che nell'ultima fase la callback è stato invocata in modo asincrono da `setTimeout`. Questa callback è simile. La differenza principale è che la funzione `close` viene richiamata dall'utente quando clicca per uscire dalla finestra di dialogo.
 
 
 CODICE:
@@ -136,3 +136,129 @@ class Dialog {
 module.exports = Dialog;
 
 ```
+
+
+## Callback multiple per finestre dialogo
+-------------------------
+
+A volte si ha la necessità di collegare **molteplici callback** alla chiusura di una finestra di dialogo. 
+----------------------------------------------
+
+Aggiungiamo la possibilità di collegare **multiple** funzioni di callback al codice scritto prima.
+
+Ogni volta che viene chiamato il metodo `onClose`, dovremo memorizzare una funzione di callback aggiuntiva nella nostra classe `Dialog`. Una volta chiamato `close`, invocheremo tutte queste funzioni di callback.
+
+Inizializziamo un array sulla classe `Dialog` nel metodo `costruttore` che viene chiamato **una volta sola**, quando viene creata una nuova istanza.
+
+
+CODICE:
+
+```
+class Dialog {
+    constructor() {
+        this.callbackFunction = null;
+        this.arrCallback = [];
+    }
+
+    onClose(callbackFunction) {
+        this.arrCallback.push(callbackFunction);
+    }
+
+    close() {
+        this.arrCallback.forEach(callback => callback());
+
+    }
+}
+
+module.exports = Dialog;
+
+```
+
+---
+
+## Funzione forEach 
+
+Creiamo una funzione forEach custom.
+
+Questa funzione prende due parametri:
+
+1. Un array di elementi
+2. Una funzione di callback da eseguire per ogni elemento nell'array
+
+Assicuriamoci di chiamare la funzione di callback sia con l'elemento corrente nell'array che con l'indice a base zero.
+
+Esempio:
+```
+forEach(['a','b','c'], (e,i) => {
+    console.log(e,i);
+});
+```
+
+La riga `console.log` dovrebbe essere eseguita tre volte, registrando:
+```
+a, 0
+b, 1
+c, 2
+```
+
+Ecco la soluzione per la funzione forEach:
+
+```
+function forEach(arr, callback) {
+    for (let i = 0; i < arr.length; i++) {
+        callback(arr[i], i);
+    }
+}
+
+module.exports = forEach;
+
+```
+
+Iteriamo su ogni elemento dell'array utilizzando un semplice ciclo `for` e chiamiamo la funzione di callback fornita con l'elemento corrente e il suo indice.
+
+---
+
+## Callback e funzione .map
+
+Nella funzione custom .map, vogliamo prendere un array ed eseguire una funzione su ogni elemento, sostituendo l'elemento con il valore restituito dalla funzione.
+
+Per esempio:
+
+```
+const newArray = map([3,4,5], (x) => {
+    return x * 3;
+});
+
+console.log(newArray); // [9,12,15]
+
+```
+
+-------------------------------------
+
+Mappiamo ogni elemento dell'array al suo nuovo valore restituito dalla funzione `callback`.
+
+Questa volta si dovrà creare un nuovo array che verrà restituito alla fine dell'iterazione di `map`.
+
+CODICE:
+
+```
+function map(arr, callback) {
+    const result = [];
+    for(i = 0; i < arr.length; i++){
+        result.push(callback(arr[i]));
+    
+    }
+    return result;
+    
+}
+
+module.exports = map;
+
+```
+
+La callback viene chiamata su ogni elemento dell'array e restituisce il risultato della trasformazione. Questo valore viene quindi inserito in un nuovo array, `result`, che verrà restituito alla fine della funzione.
+
+La funzione di callback prende due parametri: l'elemento corrente dell'array e il suo indice. La funzione map itera su ogni elemento dell'array utilizzando un ciclo `for` e chiama la funzione di callback passando l'elemento e l'indice corrente. Il risultato della chiamata di callback viene quindi inserito nel nuovo array usando il metodo `push`.
+
+Infine, la funzione map restituisce il nuovo array contenente i risultati delle trasformazioni applicate agli elementi dell'array originale.
+
