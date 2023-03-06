@@ -226,3 +226,280 @@ filePromise.then((contents) => {
 });
 
 ```
+---
+
+## Creare Promises
+
+------------------
+
+Prima abbiamo visto come gestire una promessa restituita. In questa fase **creiamo una promessa**.
+
+La maggior parte dei moderni ambienti JavaScript ha un oggetto `Promise` incorporato che può essere usato per creare una nuova `Promise`:
+
+```
+const promise = new Promise(function(resolve, reject) {
+    resolve('resolve successful!');
+});
+
+```
+
+ La funzione fornita alla promise è chiamata funzione executor. Questa funzione viene chiamata immediatamente e di solito viene impostata per risolvere dopo che è successo qualcosa di asincrono.
+
+> È possibile trovare la documentazione di `Promise` su [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise).
+
+```
+promise.then(function(message) {
+    console.log(message);
+});
+
+```
+
+
+## Restituire una promessa risolta
+-------------------------------------
+
+All'interno della funzione `timer', restituire una nuova **promessa risolta**.
+
+> Non è necessario fare nulla all'interno della funzione, se non invocare la funzione `resolve`.
+
+```
+function timer() {
+    const promise = new Promise(function(resolve, reject){
+        resolve('just smth');
+    });
+    return promise;
+    
+}
+
+module.exports = timer;
+
+```
+
+---
+
+## Esecutore asincrono (Async Executor)
+---------------------
+
+Lo scopo della funzione **executor** è quello di avvolgere un'azione asincrona e fornire la callback per il risultato.
+
+```
+const p1 = new Promise(function executor(resolve, reject) {
+    runAnimation(function() {
+        resolve();
+    });
+});
+
+```
+
+La funzione `runAnimation` accetta solo una funzione di callback al termine dell'animazione.
+
+Avvolgendola in una `promise`, creiamo un nuovo oggetto `p1`, che può essere usato per collegare molteplici callback con `then`:
+
+```
+p1.then(function() {
+    showDialog();
+});
+
+```
+
+```
+p1.then(function() {
+    removeAnimation();
+});
+
+```
+
+> Questi due callback `then` possono essere collegate in punti diversi del programma, consentendo di [separare le preoccupazioni] (https://en.wikipedia.org/wiki/Separation_of_concerns) più facilmente.
+
+### Creare un timer asincrono
+------------------------------
+
+Modifichiamo la funzione esecutrice `timer' in modo che si risolva dopo un secondo.
+
+È possibile eseguire il codice dopo un secondo utilizzando un timeout:
+
+```
+function timer() {
+    const promise = new Promise(function(resolve, reject){
+        setTimeout(function () {
+            resolve('just smth');
+        }, 1000);
+ 
+    });
+    return promise;
+    
+}
+
+module.exports = timer;
+```
+
+
+---
+
+Attesa asincrona (Async await)
+-----------
+
+Un altro strumento utile nella cintura degli strumenti asincroni di JavaScript è **async**/**await**.
+
+Con queste due parole chiave possiamo gestire le promesse riga per riga come il codice sincrono:
+
+```
+function async getData() {
+    const result = await serverCall();
+
+    // questo non verrà eseguito finché serverCall non risolve/rifiuta
+    return result;
+}
+
+```
+
+ In questo esempio, `serverCall` restituisce una promessa e il `result` è il valore risolto.
+
+> La riga `return` non viene eseguita fino al completamento della promessa `serverCall`. Questo è il caso di qualsiasi cosa dopo la riga `await`. 
+
+Avvolgendo questa funzione `test` in una promessa, si ottiene un ambiente speciale in cui è possibile scrivere codice che sembra sincrono, pur consentendo di essere asincrono. Questo è il potere di **async**/**await**.
+
+L'esempio precedente è funzionalmente equivalente a:
+
+```
+function getData() {
+    return serverCall().then((result) => {
+        return result;
+    });
+}
+
+```
+
+In entrambi i casi, `getData` restituisce una promessa e la promessa si risolve con il `result`.
+
+> Si può pensare a `async` come a un modo per indicare che una funzione restituirà una promessa. Per una documentazione completa su async [vedere qui](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function).
+
+
+## Parola chiave Async
+-------------
+
+La parola chiave **async** fa sì che una funzione restituisca una promessa. Anche se si dovesse creare una semplice funzione come questa:
+
+```
+async function test() {
+
+}
+
+```
+
+Aggiungendo `async` davanti, questa funzione restituirà una promessa quando viene invocata.
+
+Questo ci permette di scrivere codice asincrono all'interno della funzione `test` come se fosse sincrono.
+
+Per esempio:
+
+```
+function async test() {
+    await getServerData();
+
+    return 3;
+}
+
+```
+
+ Non restituiremo `3` fino a quando la promessa restituita da `getServerData` non si risolverà.
+
+Questo sarebbe un problema se venisse chiamato `test` e si aspettasse il valore di ritorno immediatamente:
+
+```
+const three = test();
+
+```
+
+Il valore di tre è uguale a `3` in questo caso? 
+
+No! È una promessa:
+
+```
+console.log(tre); // Promessa
+
+// Dovremmo cercare di dare un nome appropriato ai nostri oggetti
+const threePromise = three;
+threePromise.then(function(data) {
+    console.log(data); // 3
+});
+
+```
+
+-----------------------------
+
+ESERCIZIO
+
+-----------------------------
+
+Abbiamo una funzione `handleResults` che dovrebbe recuperare i risultati di un paziente da un laboratorio, inviarli al paziente e registrare la risposta nei log.
+
+![Relay](https://res.cloudinary.com/divzjiip8/image/upload/v1573092887/Frame_1_61_xvipqy.png)
+
+Le tre funzioni sono state importate da un file esterno. Ogni funzione restituisce una promessa, quindi può essere usata con **async**/**await**. È necessario chiamarle in ordine:
+
+1.  Passare il `patientId` a `getResults`. Questo risolverà con `results`.
+
+2.  Passare il `patientId` e `results` (in quest'ordine) a `sendResults`. Questo risolverà con `response`.
+
+3.  Passare la `risposta` a `logResponse`. Non c'è un valore di ritorno. Si può scegliere di restituire la promessa da `logResponse` o di usare `await`, in modo che la funzione non si risolva fino al completamento di `logResponse`.
+
+> Si noti che la parola chiave `async` è già stata aggiunta alla funzione `handleResults`. Questo ci permetterà di usare `await` all'interno della funzione.
+
+
+```
+
+const { getResults } = require('./lab');
+const { sendResults } = require('./messaging');
+const { logResponse, logError } = require('./logs');
+
+async function handleResults(patientId) {
+    try{
+        const results = await getResults(patientId);
+        const response = await sendResults(patientId, results);
+        await logResponse(response);
+
+    } catch(err){
+        logError(err);
+
+    }
+    
+}
+
+module.exports = handleResults;
+
+```
+
+
+## Catching Async/Await
+--------------------
+
+Le parole chiave **async/await** ci forniscono una bella interfaccia per utilizzare le promesse. Abbiamo ancora una promessa che può essere sia **risolta** *che* **rifiutata**.
+
+Nell'ultima fase, abbiamo gestito solo la **risoluzione**.
+
+Come gestiamo il caso in cui la promessa viene rifiutata? 
+
+Possiamo usare `try`/`catch`.
+
+```
+function async getData() {
+    try {
+        const data = await callServer();
+    }
+    catch(ex) {
+        // questo viene eseguito se la promessa di callServer viene rifiutata
+        console.log(ex);
+    }
+}
+
+```
+
+ Se la promessa `callServer` dovesse essere **rifiutata** qui, verrebbe `catturata` l'eccezione e quindi registrata nella console.
+
+ Obiettivo: catturare un errore
+--------------------------
+
+Se viene lanciato un errore in **una qualsiasi** delle funzioni asincrone che abbiamo chiamato nell'ultima fase, catturiamolo.
+
+Una volta ottenuta l'eccezione, passarla a `logError`.
