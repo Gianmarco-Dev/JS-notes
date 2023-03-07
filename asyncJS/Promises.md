@@ -336,7 +336,7 @@ module.exports = timer;
 
 ---
 
-Attesa asincrona (Async await)
+## Attesa asincrona (Async await)
 -----------
 
 Un altro strumento utile nella cintura degli strumenti asincroni di JavaScript è **async**/**await**.
@@ -375,7 +375,7 @@ In entrambi i casi, `getData` restituisce una promessa e la promessa si risolve 
 > Si può pensare a `async` come a un modo per indicare che una funzione restituirà una promessa. Per una documentazione completa su async [vedere qui](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/async_function).
 
 
-## Parola chiave Async
+### Parola chiave Async
 -------------
 
 La parola chiave **async** fa sì che una funzione restituisca una promessa. Anche se si dovesse creare una semplice funzione come questa:
@@ -474,7 +474,7 @@ module.exports = handleResults;
 ## Catching Async/Await
 --------------------
 
-Le parole chiave **async/await** ci forniscono una bella interfaccia per utilizzare le promesse. Abbiamo ancora una promessa che può essere sia **risolta** *che* **rifiutata**.
+Le parole chiave **async/await** ci forniscono un'ottima interfaccia per utilizzare le promesse. Abbiamo ancora una promessa che può essere sia **risolta** *che* **rifiutata**.
 
 Nell'ultima fase, abbiamo gestito solo la **risoluzione**.
 
@@ -497,9 +497,193 @@ function async getData() {
 
  Se la promessa `callServer` dovesse essere **rifiutata** qui, verrebbe `catturata` l'eccezione e quindi registrata nella console.
 
+ESERCIZIO: catturare un errore
+--------------------------
+
+Se viene lanciato un errore in **una qualsiasi** delle funzioni asincrone che abbiamo chiamato nell'ultima fase, lo catturiamo con `catch`.
+
+Una volta ottenuta l'eccezione, la passiamo a `logError`.
+
+```
+// external imports
+
+const { getResults } = require('./lab');
+const { sendResults } = require('./messaging');
+const { logResponse, logError } = require('./logs');
+
+async function handleResults(patientId) {
+    try {
+        const results = await getResults(patientId);
+        const response = await sendResults(patientId, results);
+        await logResponse(response);
+
+    } catch (err) { 
+        logError(err);
+
+    }
+    
+}
+
+module.exports = handleResults;
+
+```
+
+Catturare Async/Await
+--------------------
+
+Le parole chiave **async/await** ci forniscono una bella interfaccia per utilizzare le promesse. Tenete a mente cosa succede sotto il cofano! Abbiamo ancora una promessa che può essere sia **risolta** *che* **rifiutata**.
+
+Nell'ultima fase, abbiamo gestito solo la **risoluzione**.
+
+Come gestiamo il caso in cui la promessa viene rifiutata? 
+
+Possiamo usare `try`/`catch`!
+
+```
+funzione async getData() {
+    try {
+        const data = await callServer();
+    }
+    catch(ex) {
+        // questo viene eseguito se la promessa di callServer viene rifiutata
+        console.log(ex);
+    }
+}
+
+```
+
+ Se la promessa `callServer` dovesse **rifiutarsi** qui, verrebbe `catturata` l'eccezione e quindi registrata nella console.
+
  Obiettivo: catturare un errore
 --------------------------
 
 Se viene lanciato un errore in **una qualsiasi** delle funzioni asincrone che abbiamo chiamato nell'ultima fase, catturiamolo.
 
 Una volta ottenuta l'eccezione, passarla a `logError`.
+
+
+
+============
+Patto: Una libreria JS di promesse
+============
+
+Creiamo la nostra implementazione di una libreria di promesse.
+
+Se diamo un'occhiata alle promesse su [MDN](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise), possiamo vedere che l'idea di base è quella di creare un **proxy** per un valore che sarà risolto in modo asincrono. L'API è simile a questa:
+
+```
+var promise = new Promise(function(resolve, reject) {
+  // risolve asincronicamente un valore
+  setTimeout(() => {
+    resolve(42);
+  }, 100);
+});
+
+promise.then((valore) => {
+  console.log(valore); // 42
+});
+
+```
+
+
+Le promesse JS sotto il cofano sono una comoda API per richiamare funzioni. Dimostriamolo creando la nostra implementazione di una promessa JS chiamata `Patto`.
+
+Alla fine, `Patto` sarà in grado di gestire callback asincrone `then`, `catch` e persino concatenate, come in questo caso:
+
+```
+let patto = new Patto((resolve, reject) => {
+  setTimeout(() => {
+      resolve(42);
+  }, 100);
+}).then((val) => {
+  console.log(val) // 42;
+  return val * 2;
+}).then((val) => {
+  console.log(val) // 84;
+});
+
+```
+
+============
+Then & Catch 
+============
+
+Costruiamo la nostra libreria di promesse chiamata `Patto`. 
+
+Come si può vedere nel file `Patto.js`, abbiamo iniziato con una classe `Patto`.
+
+---------------------------
+### Aggiungere i metodi
+---------------------------
+
+Il primo compito è creare due metodi della classe, `catch` e `then`. Questi metodi sono usati da promises per creare delle callback.
+
+
+
+Per passare le asserzioni in `testPatto.js`, è sufficiente creare i metodi `catch` e `then` sulla classe `Patto`. 
+
+
+Esempi
+--------
+
+Ecco alcuni esempi di promesse che utilizzano `catch` e `then`, in modo da avere un'idea di cosa stiamo cercando di costruire.
+
+```
+const promise = new Promise((resolve, reject) => {
+    // codice asincrono qui
+});
+
+promise.then(() => {
+    // questa funzione sarà eseguita
+    // quando viene chiamata la funzione resolve
+})
+
+promise.catch(() => {
+    // questa funzione verrà eseguita
+    // quando viene chiamata la funzione reject
+})
+
+```
+
+Se chiamiamo resolve all'interno della funzione di esecuzione della promessa:
+
+```
+const promise = new Promise((resolve, reject) => {
+    resolve(42);
+});
+
+```
+
+La funzione `then` viene invocata con `42`:
+
+```
+promise.then((val) => {
+    console.log(val); // 42
+})
+
+```
+
+Allo stesso modo, se la funzione `reject` viene invocata, la funzione `catch` verrà invocata con il valore passato in `reject`.
+
+---
+
+> FILE testPatto.JS
+
+```
+const Patto = require('../Patto');
+const { assert } = require('chai');
+
+describe('Patto', function () {
+    it('should return an object with a then function', async () => {
+        assert.equal(typeof (new Patto(() => { })).then, 'function');
+    });
+
+    it('should return an object with a catch function', async () => {
+        assert.equal(typeof (new Patto(() => { })).catch, 'function');
+    });
+});
+
+```
+
+
+
