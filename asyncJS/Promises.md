@@ -914,3 +914,186 @@ Quando l'esecutore `executor` viene chiamato, passiamo le funzioni resolve e rej
 Nelle funzioni `then` e `catch`, si pusha semplicemente il callback nell'array appropriato e lo si restituisce, il che consente di concatenare più chiamate `then` o `catch`.
 
 Quando chiamiamo then o catch, memorizziamo le callback in un array. Quando si chiama resolve o reject, si itera attraverso questo array e si chiama ogni callback con il valore appropriato.
+
+---
+
+==========
+
+## Risoluzione immediata della Promise
+==========
+
+Una caratteristica che sicuramente vorremo dalla nostra libreria Patto è la capacità di risolvere immediatamente se un `patto` ha già risolto/rifiutato.
+
+Pensiamo ad un caso specifico: se passiamo un `patto` a un altro pezzo di codice, quel codice si aspetterebbe di poter collegare un callback `.then` indipendentemente dal fatto che il patto si sia risolto o meno guardiamo ad un esempio reale: ordinazioni di PIZZA.
+
+Ammettiamo di costruire un servizio di consegna pizze. 
+
+Sappiamo quale pizza l'utente vuole comprare, ma non siamo sicuri di avere dei dipendenti disponibili a consegnare la pizza:
+
+```
+function confirmPizza(driversPatto) {
+    confirmDialog("Sei pronto per l'acquisto?", () => {
+        driversPatto.then((drivers) => {
+            if(drivers.length > 0) {
+                // Driver in arrivo!
+            }
+            else {
+                // Oof, siamo piuttosto occupati al momento. 
+            }
+        });
+    });
+}
+
+// immaginiamo di avere una funzione `getAvailableDrivers`
+// che chiama il nostro server per verificare la disponibilità dei riders
+
+const patto = new Patto((resolve, reject) => {
+    getAvailableDrivers((drivers) => {
+        resolve(drivers);
+    });
+});
+
+// passiamo il nostro patto alla finestra di dialogo `confirmPizza`
+confirmPizza(patto);
+
+```
+
+Si può notare che, mentre confermiamo all'utente se è pronto per la consegna, stiamo anche caricando il numero di autisti disponibili.
+
+All'interno del callback della finestra di conferma, possiamo inserire un callback `.then` senza preoccuparci se il patto è già stato risolto o meno. Se lo è, il codice verrà eseguito **immediatamente** dopo la conferma dell'utente. In caso contrario, verrà eseguito non appena avremo raccolto le informazioni dal server.
+
+> La risoluzione dovrebbe avvenire prima che `.then` sia stato collegato. Tutte le callback di `.then' dovrebbero essere eseguite immediatamente con il valore di risoluzione.
+
+
+Ora implementiamo la **funzione di risoluzione immediata** se il patto è già stato risolto.
+
+A tale scopo, dovremo memorizzare il valore risolto in una variabile membro dell'istanza del patto e memorizzare anche un array di callback di risoluzione che saranno richiamati se il patto non è ancora stato risolto.
+
+Ecco il codice aggiornato:
+
+```
+class Patto {
+  constructor(executor) {
+    this.resolvedValue = null;
+    this.rejectedValue = null;
+    this.resolveCallbacks = [];
+     this.rejectCallbacks = [];
+
+    const resolve = (value) => {
+      this.resolvedValue = value;
+      this.resolveCallbacks.forEach((callback) => {
+        callback(value);
+      });
+    };
+
+    const reject = (error) => {
+      this.rejectedValue = error;
+      this.rejectCallbacks.forEach((callback) => {
+        callback(error);
+      });
+    };
+
+    executor(resolve, reject);
+  }
+
+  then(callback) {
+    if (this.resolvedValue !== null) {
+      callback(this.resolvedValue);
+    } else {
+      this.resolveCallbacks.push(callback);
+    }
+    return this;
+  }
+
+  catch(callback) {
+    if (this.rejectedValue !== null) {
+      callback(this.rejectedValue);
+    } else {
+      this.rejectCallbacks.push(callback);
+    }
+    return this;
+  }
+}
+
+module.exports = Patto;
+```
+
+---
+
+Nel `costruttore`, abbiamo aggiunto due variabili membro: `resolvedValue` per memorizzare il valore risolto se il patto è già stato risolto e `resolveCallbacks` per memorizzare un array di callback di risoluzione che saranno chiamati se il patto non è ancora stato risolto.
+
+Nella funzione `resolve`, si imposta la variabile membro `resolvedValue` e si chiama ogni callback di resolve nell'array `resolveCallbacks`.
+
+Nella funzione `then`, si verifica se il patto è già stato risolto, controllando la variabile membro `resolvedValue`. Se lo è, chiamiamo immediatamente la funzione di callback con il valore risolto. In caso contrario, aggiungiamo la funzione di callback all'array `resolveCallbacks`.
+
+Aggiungiamo anche un'istruzione `return this` alla fine di ogni funzione, per consentire la concatenazione di più chiamate `then` o `catch`.
+
+Ora implementiamo il comportamento di catch e reject. 
+
+Questa implementazione include una proprietà `rejectedValue` e un array `rejectCallbacks` per gestire le promesse rifiutate e le callback `catch`. Le funzioni `resolve` e `reject` sono state aggiornate per gestire queste nuove caratteristiche. Inoltre, abbiamo aggiunto un blocco `try-catch` intorno alla funzione `executor`, per catturare eventuali errori che potrebbero essere lanciati durante l'esecuzione della promessa.
+
+==========
+
+## Concatenare le callbacks
+
+==========
+
+
+Un'altra caratteristica di `Promise` è che consente di [concatenare](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Promise/then#Chaining) le callback `.then`.
+
+Ciò consente di **trasformare** il risultato in ogni callback successiva. Vediamo un esempio:
+
+```
+const patto = new Patto((resolve, reject) => {
+    setTimeout(() => {
+        resolve(42);
+    }, 100);
+}).then((val) => {
+    console.log(val); // 42
+    return val * 2;
+}).then((val) => {
+    console.log(val); // 84
+    return val * 2;
+});
+
+patto.then((val) => {
+    console.log(val); // 168
+});
+
+```
+
+> Si noti come il valore passato nel secondo `.then` sia stato raddoppiato dal primo callback `.then`. Questo accade di nuovo per la terza callback `.then`. Per quanto riguarda `.then` e le callback collegate, **l'ordine conta**.
+
+Per aggiungere il supporto per le promesse all'interno delle promesse, dobbiamo modificare il metodo `then()` esistente della classe Patto. Possiamo verificare se il valore di ritorno della callback `then()` corrente è un'istanza di Patto o meno e, in base a ciò, possiamo risolvere la nuova promessa immediatamente o aspettare che la promessa interna si risolva.
+
+Ecco il metodo `then()` aggiornato:
+
+```
+then(callback) {
+    return new Patto((resolve, reject) => {
+        const onResolve = (value) => {
+            try {
+                const result = callback(value);
+                if (result instanceof Patto) {
+                    result.then(resolve).catch(reject);
+                } else if (result instanceof Promise) {
+                    result.then(resolve).catch(reject);
+                } else {
+                    resolve(result);
+                }
+            } catch (error) {
+                reject(error);
+            }
+        };
+        if (this.resolvedValue !== null) {
+            onResolve(this.resolvedValue);
+        } else {
+            this.resolveCallbacks.push(onResolve);
+        }
+    });
+}
+
+```
+
+Nel metodo aggiornato `then()`, controlliamo se il risultato del callback corrente è un'istanza di `Promise` oltre che di `Patto`. Se è una Promise, aspettiamo semplicemente che si risolva, usando `result.then(resolve).catch(reject)`.
+Con questa modifica, possiamo ora concatenare promesse all'interno di promesse.
