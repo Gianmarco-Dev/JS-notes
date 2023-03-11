@@ -619,7 +619,6 @@ Come si può vedere nel file `Patto.js`, abbiamo iniziato con una classe `Patto`
 Il primo compito è creare due metodi della classe, `catch` e `then`. Questi metodi sono usati da promises per creare delle callback.
 
 
-
 Per passare le asserzioni in `testPatto.js`, è sufficiente creare i metodi `catch` e `then` sulla classe `Patto`. 
 
 
@@ -685,5 +684,227 @@ describe('Patto', function () {
 
 ```
 
+==========
+
+## Funzione esecutrice
+
+==========
+
+La funzione che viene passata al costruttore della promise è spesso chiamata funzione **esecutrice**:
+
+```
+new Promise(function executor(resolve, reject) {
+    // interno della funzione executor
+});
+
+```
+
+Aggiungiamo questa funzionalità al nostro `Patto`.
+
+Dobbiamo dichiarare un nuovo `costruttore` su Patto. Questo costruttore avrà come unico parametro una funzione `executor`.
+Questa funzione `executor` deve essere immediatamente richiamata dal costruttore con due argomenti, entrambi funzioni: resolve e reject.
+
+Ecco come potrebbe essere implementata la soluzione:
+
+```
+class Patto {
+    constructor(executor){
+        executor(this.resolve, this.reject);
+    }
+
+    resolve() {
+        // implementazione del resolve
+    }
+
+    reject() {
+        // implementazione del reject
+    }
+
+    catch(){
+
+    };
+
+    then(){
+
+    };
+}
+
+module.exports = Patto;
+
+```
+
+Nella soluzione proposta, abbiamo definito una funzione `resolve` e una `reject` all'interno della classe. Queste funzioni vengono passate come argomenti alla funzione `executor` quando viene invocata nel costruttore.
+
+L'implementazione delle funzioni `resolve` e `reject` può variare a seconda delle esigenze del programma. Ad esempio, la funzione `resolve` potrebbe impostare una variabile di stato per indicare che la promessa è stata risolta con successo, mentre la funzione `reject` potrebbe impostare una variabile di stato per indicare che la promessa è stata rifiutata.
+
+==========
+## Metodo .then
+==========
+
+-------------
+
+Ora implementeremo la gestione del comportamento asincrono.
+
+Vogliamo che la nostra callback `then` sia risolta dopo che qualcosa accada in modo asincrono. Diamo un'occhiata a ciò che stiamo cercando di ottenere:
+
+```
+const patto = new Patto((resolve, reject) => {
+    setTimeout(() => {
+        // dopo mezzo secondo risolviamo con valore 42
+        resolve(42);
+    }, 500);
+});
+
+patto.then((value) => {
+    // dopo che è stato chiamato resolve, 42 viene passato qui
+    console.log(value); // 42
+});
+
+```
 
 
+
+### Risolvere la callback
+
+----------------------------
+
+Nell'ultima fase, abbiamo passato due funzioni alla funzione `executor`. La prima di queste funzioni è la funzione `resolve`, la quale deve invocare la funzione callback, passata nella funzione `then`.
+Per gestire il comportamento asincrono delle promesse, dobbiamo far sì che la funzione di callback passata in `.then()` venga eseguita solo quando la promessa viene risolta.
+
+Nel codice di partenza, abbiamo già definito i metodi `resolve()` e `reject()` del costruttore. Ora dobbiamo fare in modo che la funzione `resolve()` chiami la funzione di callback passata a `then()`.
+
+Per farlo, possiamo creare una proprietà `thenCallback` nella classe `Patto` e assegnarvi la funzione di callback passata a `.then()`. Poi, nel metodo `resolve()`, possiamo eseguire la funzione di callback e passarvi il valore che vogliamo risolvere.
+
+Ecco come potrebbe essere il codice completo:
+
+
+```
+class Patto {
+
+    constructor(executor){
+        this.thenCallback = null;
+        executor(this.resolve.bind(this), this.reject.bind(this));
+    }
+
+    resolve(value){
+        if (this.thenCallback) {
+            this.thenCallback(value);
+        }
+    }
+
+    reject(){
+
+    }
+
+    catch(){
+
+    }
+
+    then(callback){
+        this.thenCallback = callback;
+    }
+
+}
+
+module.exports = Patto;
+
+```
+In questo esempio, abbiamo creato una proprietà `thenCallback` nella classe `Patto` e l'abbiamo inizializzata con il valore `null`. Nel metodo `then()`, assegniamo la funzione di callback passata come parametro alla proprietà `thenCallback`.
+
+Nel metodo `resolve()`, controlliamo se la proprietà `thenCallback` è stata impostata. Se lo è, eseguiamo la funzione di callback passandogli il valore che vogliamo risolvere. Notiamo che abbiamo utilizzato `bind(this)` per assicurarci che il contesto della funzione `resolve()` sia sempre quello dell'istanza di Patto.
+
+Con questo codice, quando istanziamo la classe `Patto` e passiamo la funzione di executor, il metodo `resolve()` viene chiamato quando la promessa è risolta. Se il metodo `then()` è stato chiamato prima della risoluzione della promessa, la funzione di callback passata verrà eseguita con il valore risolto.
+
+## Catch reject
+
+Per catturare il `reject`, rifiuto, dobbiamo implementare il metodo `catch` nella nostra classe `Patto`. 
+Questo metodo deve prendere come argomento una funzione e memorizzarla in una variabile membro della classe, in modo simile a quanto fatto con il metodo `.then`.
+
+Quindi, dobbiamo modificare il nostro metodo `reject` per invocare il callback catch con il valore di `reject`, se esiste.
+
+Ecco il codice aggiornato con cui possiamo **risolvere** o **rifiutare** le callback usando `then` e `catch` in quest'ordine:
+
+```
+class Patto {
+  constructor(executor) {
+    this.resolveCallback = null;
+    this.rejectCallback = null;
+
+    executor(this.resolve.bind(this), this.reject.bind(this));
+  }
+
+  resolve(value) {
+    if (this.resolveCallback) {
+      this.resolveCallback(value);
+    }
+  }
+
+  reject(value) {
+    if (this.rejectCallback) {
+      this.rejectCallback(value);
+    }
+  }
+
+  catch(callback) {
+    this.rejectCallback = callback;
+  }
+
+  then(callback) {
+    this.resolveCallback = callback;
+  }
+}
+
+module.exports = Patto;
+```
+
+==========
+## Gestire più funzioni
+==========
+Per contenere più funzioni, possiamo creare un array per memorizzare le callback. Possiamo inserire ogni nuova callback nell'array quando viene richiamato il metodo `.then` o `.catch` e poi iterare l'array quando viene richiamato `resolve` o `reject`, richiamando ogni callback con il valore appropriato.
+
+Ecco come poterlo fare:
+
+```
+
+class Patto {
+  constructor(executor) {
+    this.resolveCallbacks = [];
+    this.rejectCallbacks = [];
+
+    const resolve = (value) => {
+      for (const callback of this.resolveCallbacks) {
+        callback(value);
+      }
+    };
+
+    const reject = (value) => {
+      for (const callback of this.rejectCallbacks) {
+        callback(value);
+      }
+    };
+
+    executor(resolve, reject);
+  }
+
+  then(callback) {
+    this.resolveCallbacks.push(callback);
+    return this;
+  }
+
+  catch(callback) {
+    this.rejectCallbacks.push(callback);
+    return this;
+  }
+}
+
+module.exports = Patto;
+```
+
+
+Inizializziamo due array per memorizzare le callback `resolve` e `reject`. Quindi creiamo due funzioni locali, `resolve` e `reject`, che iterano sull'array di callback appropriato e chiamano ciascuna callback con il valore di resolve/reject.
+
+Quando l'esecutore `executor` viene chiamato, passiamo le funzioni resolve e reject.
+
+Nelle funzioni `then` e `catch`, si pusha semplicemente il callback nell'array appropriato e lo si restituisce, il che consente di concatenare più chiamate `then` o `catch`.
+
+Quando chiamiamo then o catch, memorizziamo le callback in un array. Quando si chiama resolve o reject, si itera attraverso questo array e si chiama ogni callback con il valore appropriato.
