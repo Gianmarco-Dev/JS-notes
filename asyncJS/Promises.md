@@ -815,7 +815,11 @@ Nel metodo `resolve()`, controlliamo se la proprietà `thenCallback` è stata im
 
 Con questo codice, quando istanziamo la classe `Patto` e passiamo la funzione di executor, il metodo `resolve()` viene chiamato quando la promessa è risolta. Se il metodo `then()` è stato chiamato prima della risoluzione della promessa, la funzione di callback passata verrà eseguita con il valore risolto.
 
+--- 
+
+==========
 ## Catch reject
+==========
 
 Per catturare il `reject`, rifiuto, dobbiamo implementare il metodo `catch` nella nostra classe `Patto`. 
 Questo metodo deve prendere come argomento una funzione e memorizzarla in una variabile membro della classe, in modo simile a quanto fatto con il metodo `.then`.
@@ -856,10 +860,12 @@ class Patto {
 
 module.exports = Patto;
 ```
+---
 
 ==========
 ## Gestire più funzioni
 ==========
+
 Per contenere più funzioni, possiamo creare un array per memorizzare le callback. Possiamo inserire ogni nuova callback nell'array quando viene richiamato il metodo `.then` o `.catch` e poi iterare l'array quando viene richiamato `resolve` o `reject`, richiamando ogni callback con il valore appropriato.
 
 Ecco come poterlo fare:
